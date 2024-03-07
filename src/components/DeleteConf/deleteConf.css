@@ -1,0 +1,39 @@
+.confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: 24px;
+}
+.confirmation__title {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+.confirmation-button-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 36px;
+}
+.confirmation-button-block__button {
+  width: 95px;
+  height: 27px;
+  padding: 6px 36px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 15px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+.agreement {
+  background-color: #e0e0e0;
+  color: #828282;
+}
+.disagreement {
+  background-color: #0cb4f1;
+  color: var(--white);
+}

@@ -1,0 +1,29 @@
+.navigation__wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 12px;
+}
+.navigation__img {
+  height: 100%;
+  aspect-ratio: 1/1;
+  user-select: none;
+}
+.navigation__btn {
+  cursor: pointer;
+  height: 20px;
+  width: 24px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+.navigation__btn.active {
+  background-color: var(--light-blue);
+}
+.navigation__btn.disabled {
+}
+.navigation__text {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0em;
+}
