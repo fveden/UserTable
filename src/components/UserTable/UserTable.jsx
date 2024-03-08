@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Pagination from "../Pagination/Pagination";
+import ModalWindow from "../ModalWindow/ModalWindow";
+import DeleteConf from "../DeleteConf/DeleteConf";
 import "./userTable.css";
 
-function UserTableRow({ id, username, email, date, rating }) {
+function UserTableRow({ id, username, email, date, rating, deleteFunc }) {
   const date_parts = date.split("T")[0].split("-");
   const formated_date =
     date_parts[2] + "." + date_parts[1] + "." + date_parts[0].slice(-2);
@@ -20,6 +22,9 @@ function UserTableRow({ id, username, email, date, rating }) {
           className="table__data-table-row-dlt-img"
           alt="cancel"
           src="/img/icons/cancel.svg"
+          onClick={() => {
+            deleteFunc(id);
+          }}
         />
       </td>
     </tr>
@@ -28,7 +33,41 @@ function UserTableRow({ id, username, email, date, rating }) {
 
 function UserTable() {
   const [data, setData] = useState([]);
+  const [activeDelete, setActiveDelete] = useState(false);
+  const deleteId = useRef(undefined); // Store an id of user to delete
 
+  /**
+   * Handle click on delete button in row
+   */
+  const handleDeleteClick = (id) => {
+    deleteId.current = id;
+    setActiveDelete(true);
+  };
+  /**
+   * Handle click on agree button
+   */
+  const agreeDeleteRow = () => {
+    const updatedData = data.filter((item) => item.id !== deleteId.current);
+    setData(updatedData);
+    deleteId.current = undefined;
+    setActiveDelete(false);
+  };
+  /**
+   * Handle click on disagree button
+   */
+  const disagreeDeleteRow = () => {
+    deleteId.current = undefined;
+    setActiveDelete(false);
+  };
+  /**
+   * For exit without clicking on buttons
+   */
+  const onLeaveDeleteConf = () => {
+    deleteId.current = undefined;
+  };
+  /**
+   * Fetch data from mock api when component did mount
+   */
   useEffect(() => {
     const fetchUsersData = async () => {
       const requestParams = {
@@ -55,6 +94,13 @@ function UserTable() {
 
   return (
     <div className="table">
+      <ModalWindow
+        active={activeDelete}
+        setActive={setActiveDelete}
+        onLeaving={onLeaveDeleteConf}
+      >
+        <DeleteConf onAgree={agreeDeleteRow} onDisagree={disagreeDeleteRow} />
+      </ModalWindow>
       <h1 className="table__title">Список пользователей</h1>
       <div className="table__search-filter-block">
         <div className="table__search-field">
@@ -97,20 +143,25 @@ function UserTable() {
             </tr>
           </thead>
           <tbody className="table__data-table-block">
-            {data.map((item) => {
-              return (
-                <UserTableRow
-                key={item.id}
-                  id={item.id}
-                  username={item.username}
-                  email={item.email}
-                  date={item.registration_date}
-                  rating={item.rating}
-                />
-              );
-            })}
+            {data.length > 0 &&
+              data.map((item) => {
+                return (
+                  <UserTableRow
+                    key={item.id}
+                    id={item.id}
+                    username={item.username}
+                    email={item.email}
+                    date={item.registration_date}
+                    rating={item.rating}
+                    deleteFunc={handleDeleteClick}
+                  />
+                );
+              })}
           </tbody>
         </table>
+        {data.length === 0 && (
+          <p className="table__data-table-empty-warning">Нет данных</p>
+        )}
         <Pagination />
       </div>
     </div>

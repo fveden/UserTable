@@ -1,15 +1,21 @@
 import "./deleteConf.css";
-function DeleteConf() {
+function DeleteConf({onAgree, onDisagree}) {
   return (
     <section className="confirmation">
       <h3 className="confirmation__title">
         Вы уверены, что хотите удалить пользователя?
       </h3>
       <div className="confirmation-button-block">
-        <button className="confirmation-button-block__button agreement">
+        <button
+          onClick={onAgree}
+          className="confirmation-button-block__button agreement"
+        >
           Да
         </button>
-        <button className="confirmation-button-block__button disagreement">
+        <button
+          onClick={onDisagree}
+          className="confirmation-button-block__button disagreement"
+        >
           Нет
         </button>
       </div>
