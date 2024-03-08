@@ -3,6 +3,7 @@ import Pagination from "../Pagination/Pagination";
 import ModalWindow from "../ModalWindow/ModalWindow";
 import DeleteConf from "../DeleteConf/DeleteConf";
 import "./userTable.css";
+import useDebounce from "../../hooks/useDebounce";
 
 function UserTableRow({ id, username, email, date, rating, deleteFunc }) {
   const date_parts = date.split("T")[0].split("-");
@@ -33,9 +34,11 @@ function UserTableRow({ id, username, email, date, rating, deleteFunc }) {
 
 function UserTable() {
   const [data, setData] = useState([]);
-  const [activeDelete, setActiveDelete] = useState(false);
+  const [filteredData, setFilteredData] = useState([]);
+  const [activeDelete, setActiveDelete] = useState(false); // Open or Close modal window
   const deleteId = useRef(undefined); // Store an id of user to delete
-
+  const [filterValue, setFilterValue] = useState("");
+  const debounceFilter = useDebounce(filterValue); // Value will be updated with a delay
   /**
    * Handle click on delete button in row
    */
@@ -83,6 +86,7 @@ function UserTable() {
         );
         const data = await response.json();
         setData(data);
+        setFilteredData(data);
       } catch (err) {
         if (err instanceof Error) {
           console.log(err.message);
@@ -91,6 +95,16 @@ function UserTable() {
     };
     fetchUsersData();
   }, []);
+
+  useEffect(() => {
+    const filtered = data.filter((item) => {
+      return (
+        item.username.toLowerCase().includes(debounceFilter.toLowerCase()) ||
+        item.email.toLowerCase().includes(debounceFilter.toLowerCase())
+      );
+    });
+    setFilteredData(filtered);
+  }, [data, debounceFilter]);
 
   return (
     <div className="table">
@@ -113,6 +127,9 @@ function UserTable() {
             type="text"
             placeholder="Поиск по имени или e-mail"
             className="table__search"
+            onChange={(e) => {
+              setFilterValue(e.target.value);
+            }}
           />
         </div>
         <div className="table__clear-filter-field">
@@ -143,8 +160,8 @@ function UserTable() {
             </tr>
           </thead>
           <tbody className="table__data-table-block">
-            {data.length > 0 &&
-              data.map((item) => {
+            {filteredData.length > 0 &&
+              filteredData.map((item) => {
                 return (
                   <UserTableRow
                     key={item.id}
@@ -159,7 +176,7 @@ function UserTable() {
               })}
           </tbody>
         </table>
-        {data.length === 0 && (
+        {filteredData.length === 0 && (
           <p className="table__data-table-empty-warning">Нет данных</p>
         )}
         <Pagination />
