@@ -38,7 +38,8 @@ function UserTable() {
   const [activeDelete, setActiveDelete] = useState(false); // Open or Close modal window
   const deleteId = useRef(undefined); // Store an id of user to delete
   const [filterValue, setFilterValue] = useState("");
-  const debounceFilter = useDebounce(filterValue); // Value will be updated with a delay
+  const debounceFilter = useDebounce(filterValue, 0); // Value will be updated with a delay if needed
+  const [sortBy, setSortBy] = useState(undefined);
   /**
    * Handle click on delete button in row
    */
@@ -67,6 +68,35 @@ function UserTable() {
    */
   const onLeaveDeleteConf = () => {
     deleteId.current = undefined;
+  };
+
+  const handleSort = (data, columnName, direction = "asc") => {
+    const sorted = [...data];
+    sorted.sort((a, b) => {
+      const item1 =
+        columnName === "date"
+          ? new Date(a.registration_date.split("T")[0])
+          : Number(a.rating);
+      const item2 =
+        columnName === "date"
+          ? new Date(b.registration_date.split("T")[0])
+          : Number(b.rating);
+      if (item1 < item2) {
+        return direction === "asc" ? -1 : 1;
+      } else if (item1 > item2) {
+        return direction === "asc" ? 1 : -1;
+      } else {
+        return 0;
+      }
+    });
+
+    setSortBy({ name: columnName, direction: direction });
+    return sorted;
+  };
+
+  const handleCleanFilters = () => {
+    setSortBy(undefined);
+    setFilterValue("");
   };
   /**
    * Fetch data from mock api when component did mount
@@ -97,12 +127,18 @@ function UserTable() {
   }, []);
 
   useEffect(() => {
-    const filtered = data.filter((item) => {
-      return (
-        item.username.toLowerCase().includes(debounceFilter.toLowerCase()) ||
-        item.email.toLowerCase().includes(debounceFilter.toLowerCase())
-      );
-    });
+    let filtered = data;
+    if (debounceFilter) {
+      filtered = data.filter((item) => {
+        return (
+          item.username.toLowerCase().includes(debounceFilter.toLowerCase()) ||
+          item.email.toLowerCase().includes(debounceFilter.toLowerCase())
+        );
+      });
+    }
+    if (sortBy) {
+      filtered = handleSort(filtered, sortBy.name, sortBy.direction);
+    }
     setFilteredData(filtered);
   }, [data, debounceFilter]);
 
@@ -127,26 +163,70 @@ function UserTable() {
             type="text"
             placeholder="Поиск по имени или e-mail"
             className="table__search"
+            value={filterValue}
             onChange={(e) => {
               setFilterValue(e.target.value);
             }}
           />
         </div>
-        <div className="table__clear-filter-field">
-          <img
-            className="table__clear-filter-img"
-            alt="clean"
-            src="/img/icons/clean.svg"
-          />
-          <span className="table__clear-filter-btn">Очистить фильтр</span>
-        </div>
+        {(filterValue || sortBy) && (
+          <div
+            className="table__clear-filter-field"
+            onClick={handleCleanFilters}
+          >
+            <img
+              className="table__clear-filter-img"
+              alt="clean"
+              src="/img/icons/clean.svg"
+            />
+            <span className="table__clear-filter-btn">Очистить фильтр</span>
+          </div>
+        )}
       </div>
       <div className="table__sorting">
         <h6 className="table__sorting-title">Сортировка:</h6>
-        <button className="table__sorting-button table__sorting-button--active">
+        <button
+          onClick={() => {
+            if (sortBy && sortBy.name === "date") {
+              setFilteredData(
+                handleSort(
+                  filteredData,
+                  "date",
+                  sortBy.direction === "asc" ? "desc" : "asc"
+                )
+              );
+            } else {
+              setFilteredData(handleSort(filteredData, "date"));
+            }
+          }}
+          className={
+            "table__sorting-button" +
+            (sortBy?.name === "date" ? " table__sorting-button--active" : "")
+          }
+        >
           Дата регистрации
         </button>
-        <button className="table__sorting-button">Рейтинг</button>
+        <button
+          onClick={() => {
+            if (sortBy && sortBy.name === "rating") {
+              setFilteredData(
+                handleSort(
+                  filteredData,
+                  "rating",
+                  sortBy.direction === "asc" ? "desc" : "asc"
+                )
+              );
+            } else {
+              setFilteredData(handleSort(filteredData, "rating"));
+            }
+          }}
+          className={
+            "table__sorting-button" +
+            (sortBy?.name === "rating" ? " table__sorting-button--active" : "")
+          }
+        >
+          Рейтинг
+        </button>
       </div>
       <div className="table__data-table-wrapper">
         <table className="table__data-table">
