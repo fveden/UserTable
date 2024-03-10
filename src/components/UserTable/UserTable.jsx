@@ -31,7 +31,7 @@ function UserTableRow({ id, username, email, date, rating, deleteFunc }) {
     </tr>
   );
 }
-
+const ELEMETS_ON_PAGE = 5;
 function UserTable() {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -167,7 +167,7 @@ function UserTable() {
   }, [data, debounceFilter]);
 
   useEffect(() => {
-    const allPages = Math.ceil(filteredData.length / 5);
+    const allPages = Math.ceil(filteredData.length / ELEMETS_ON_PAGE);
     let currentPage =
       pages.currentPage > allPages ? allPages : pages.currentPage;
     if (currentPage === 0 && filteredData.length > 0) {
@@ -221,17 +221,7 @@ function UserTable() {
         <h6 className="table__sorting-title">Сортировка:</h6>
         <button
           onClick={() => {
-            if (sortBy && sortBy.name === "date") {
-              setFilteredData(
-                handleSort(
-                  filteredData,
-                  "date",
-                  sortBy.direction === "asc" ? "desc" : "asc"
-                )
-              );
-            } else {
-              setFilteredData(handleSort(filteredData, "date"));
-            }
+            handleSortClick("date");
           }}
           className={
             "table__sorting-button" +
@@ -242,17 +232,7 @@ function UserTable() {
         </button>
         <button
           onClick={() => {
-            if (sortBy && sortBy.name === "rating") {
-              setFilteredData(
-                handleSort(
-                  filteredData,
-                  "rating",
-                  sortBy.direction === "asc" ? "desc" : "asc"
-                )
-              );
-            } else {
-              setFilteredData(handleSort(filteredData, "rating"));
-            }
+            handleSortClick("rating");
           }}
           className={
             "table__sorting-button" +
@@ -276,7 +256,7 @@ function UserTable() {
           <tbody className="table__data-table-block">
             {filteredData.length > 0 &&
               filteredData
-                .slice((pages.currentPage - 1) * 5, pages.currentPage * 5)
+                .slice((pages.currentPage - 1) * ELEMETS_ON_PAGE, pages.currentPage * ELEMETS_ON_PAGE)
                 .map((item) => {
                   return (
                     <UserTableRow
@@ -309,6 +289,20 @@ function UserTable() {
       )}
     </div>
   );
+
+  function handleSortClick(columnName) {
+    if (sortBy && sortBy.name === columnName) {
+      setFilteredData(
+        handleSort(
+          filteredData,
+          columnName,
+          sortBy.direction === "asc" ? "desc" : "asc"
+        )
+      );
+    } else {
+      setFilteredData(handleSort(filteredData, columnName));
+    }
+  }
 }
 
 export default UserTable;

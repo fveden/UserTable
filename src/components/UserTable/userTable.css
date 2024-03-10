@@ -96,6 +96,7 @@
 .table__data-table-wrapper {
   padding: 16px 18px 16px 16px;
   min-height: 260px;
+  overflow-x: auto;
 }
 .table__data-table {
   width: 100%;
