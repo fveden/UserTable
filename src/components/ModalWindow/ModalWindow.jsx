@@ -1,5 +1,10 @@
 import "./modalWindow.css";
-
+/**
+ * active: boolean;
+ * setActive: Dispatch<SetStateAction<boolean>>;
+ * onLeaving?: () => void;
+ * children: React.ReactNode;
+ */
 function ModalWindow({ active, setActive, children, onLeaving }) {
   return (
     <div

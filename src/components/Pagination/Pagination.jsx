@@ -1,6 +1,11 @@
 import React from "react";
 import "./pagination.css";
-
+/**
+ * onNextPageClick: () => void; 
+ * onPrevPageClick: () => void;
+ * disable: { left: boolean; right: boolean };
+ * pages: { currentPage: number; allPages: number; };
+ */
 function Pagination({ onNextPageClick, onPrevPageClick, disable, pages }) {
   const handleNextPageClick = () => {
     onNextPageClick();

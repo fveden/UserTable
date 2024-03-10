@@ -37,9 +37,9 @@ function UserTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [activeDelete, setActiveDelete] = useState(false); // Open or Close modal window
   const deleteId = useRef(undefined); // Store an id of user to delete
-  const [filterValue, setFilterValue] = useState("");
+  const [filterValue, setFilterValue] = useState(""); // Value in search field
   const debounceFilter = useDebounce(filterValue, 0); // Value will be updated with a delay if needed
-  const [sortBy, setSortBy] = useState(undefined);
+  const [sortBy, setSortBy] = useState(undefined); // sorting object {name: string, direction: "desc" | "asc"}
   const [pages, setPages] = useState({ currentPage: 1, allPages: 0 });
   /**
    * Handle click on delete button in row
@@ -70,8 +70,14 @@ function UserTable() {
   const onLeaveDeleteConf = () => {
     deleteId.current = undefined;
   };
-
-  const handleSort = (data, columnName, direction = "asc") => {
+  /**
+   * Sorting function depending on columnName
+   * @param {object[]} data 
+   * @param {"date" | "rating"} columnName 
+   * @param {"desc" | "asc"} direction 
+   * @returns sorted object[]
+   */
+  const handleSort = (data, columnName, direction = "desc") => {
     const sorted = [...data];
     sorted.sort((a, b) => {
       const item1 =
@@ -95,11 +101,20 @@ function UserTable() {
     return sorted;
   };
 
+  /**
+   * Return all filter states to original
+   * Set a page to 1
+   */
   const handleCleanFilters = () => {
     setSortBy(undefined);
     setFilterValue("");
+    setPages((prev) => {
+      return { currentPage: 1, allPages: prev.allPages };
+    });
   };
-
+  /**
+   * Set the page to the next page if it's possible
+   */
   const handleNextPageClick = useCallback(() => {
     const current = pages.currentPage;
     const next = current + 1;
@@ -107,7 +122,9 @@ function UserTable() {
 
     setPages({ currentPage: next <= total ? next : current, allPages: total });
   }, [pages, filteredData]);
-
+  /**
+   * Set the page to the prev page if it's possible
+   */
   const handlePrevPageClick = useCallback(() => {
     const current = pages.currentPage;
     const back = current - 1;
@@ -119,6 +136,24 @@ function UserTable() {
       };
     });
   }, [pages]);
+  /**
+   * Checks if it's the first time or
+   * repeated click on sorting button
+   * @param {"date" | "rating"} columnName 
+   */
+  const handleSortClick = (columnName) => {
+    if (sortBy && sortBy.name === columnName) {
+      setFilteredData(
+        handleSort(
+          filteredData,
+          columnName,
+          sortBy.direction === "asc" ? "desc" : "asc"
+        )
+      );
+    } else {
+      setFilteredData(handleSort(filteredData, columnName));
+    }
+  };
 
   /**
    * Fetch data from mock api when component did mount
@@ -149,6 +184,9 @@ function UserTable() {
     fetchUsersData();
   }, []);
 
+  /**
+   * Update data according to the filters state
+   */
   useEffect(() => {
     let filtered = data;
     if (debounceFilter) {
@@ -165,7 +203,9 @@ function UserTable() {
 
     setFilteredData(filtered);
   }, [data, debounceFilter]);
-
+  /**
+   * Update page object according to the changes in data
+   */
   useEffect(() => {
     const allPages = Math.ceil(filteredData.length / ELEMETS_ON_PAGE);
     let currentPage =
@@ -256,7 +296,10 @@ function UserTable() {
           <tbody className="table__data-table-block">
             {filteredData.length > 0 &&
               filteredData
-                .slice((pages.currentPage - 1) * ELEMETS_ON_PAGE, pages.currentPage * ELEMETS_ON_PAGE)
+                .slice(
+                  (pages.currentPage - 1) * ELEMETS_ON_PAGE,
+                  pages.currentPage * ELEMETS_ON_PAGE
+                )
                 .map((item) => {
                   return (
                     <UserTableRow
@@ -289,20 +332,6 @@ function UserTable() {
       )}
     </div>
   );
-
-  function handleSortClick(columnName) {
-    if (sortBy && sortBy.name === columnName) {
-      setFilteredData(
-        handleSort(
-          filteredData,
-          columnName,
-          sortBy.direction === "asc" ? "desc" : "asc"
-        )
-      );
-    } else {
-      setFilteredData(handleSort(filteredData, columnName));
-    }
-  }
 }
 
 export default UserTable;

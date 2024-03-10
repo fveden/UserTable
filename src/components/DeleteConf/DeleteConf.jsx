@@ -1,4 +1,8 @@
 import "./deleteConf.css";
+/**
+ * onAgree: () => void;
+ * onDisagree: () => void;
+ */
 function DeleteConf({onAgree, onDisagree}) {
   return (
     <section className="confirmation">
