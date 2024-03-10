@@ -19,8 +19,6 @@
 .navigation__btn.active {
   background-color: var(--light-blue);
 }
-.navigation__btn.disabled {
-}
 .navigation__text {
   font-size: 12px;
   font-weight: 500;

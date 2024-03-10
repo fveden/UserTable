@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Pagination from "../Pagination/Pagination";
 import ModalWindow from "../ModalWindow/ModalWindow";
 import DeleteConf from "../DeleteConf/DeleteConf";
@@ -40,6 +40,7 @@ function UserTable() {
   const [filterValue, setFilterValue] = useState("");
   const debounceFilter = useDebounce(filterValue, 0); // Value will be updated with a delay if needed
   const [sortBy, setSortBy] = useState(undefined);
+  const [pages, setPages] = useState({ currentPage: 1, allPages: 0 });
   /**
    * Handle click on delete button in row
    */
@@ -98,6 +99,27 @@ function UserTable() {
     setSortBy(undefined);
     setFilterValue("");
   };
+
+  const handleNextPageClick = useCallback(() => {
+    const current = pages.currentPage;
+    const next = current + 1;
+    const total = filteredData ? Math.ceil(filteredData.length / 5) : current;
+
+    setPages({ currentPage: next <= total ? next : current, allPages: total });
+  }, [pages, filteredData]);
+
+  const handlePrevPageClick = useCallback(() => {
+    const current = pages.currentPage;
+    const back = current - 1;
+
+    setPages((prev) => {
+      return {
+        currentPage: back > 0 ? back : current,
+        allPages: prev.allPages,
+      };
+    });
+  }, [pages]);
+
   /**
    * Fetch data from mock api when component did mount
    */
@@ -117,6 +139,7 @@ function UserTable() {
         const data = await response.json();
         setData(data);
         setFilteredData(data);
+        setPages({ currentPage: 1, allPages: Math.ceil(data.length / 5) });
       } catch (err) {
         if (err instanceof Error) {
           console.log(err.message);
@@ -139,8 +162,19 @@ function UserTable() {
     if (sortBy) {
       filtered = handleSort(filtered, sortBy.name, sortBy.direction);
     }
+
     setFilteredData(filtered);
   }, [data, debounceFilter]);
+
+  useEffect(() => {
+    const allPages = Math.ceil(filteredData.length / 5);
+    let currentPage =
+      pages.currentPage > allPages ? allPages : pages.currentPage;
+    if (currentPage === 0 && filteredData.length > 0) {
+      currentPage = 1;
+    }
+    setPages({ currentPage: currentPage, allPages: allPages });
+  }, [filteredData]);
 
   return (
     <div className="table">
@@ -241,26 +275,38 @@ function UserTable() {
           </thead>
           <tbody className="table__data-table-block">
             {filteredData.length > 0 &&
-              filteredData.map((item) => {
-                return (
-                  <UserTableRow
-                    key={item.id}
-                    id={item.id}
-                    username={item.username}
-                    email={item.email}
-                    date={item.registration_date}
-                    rating={item.rating}
-                    deleteFunc={handleDeleteClick}
-                  />
-                );
-              })}
+              filteredData
+                .slice((pages.currentPage - 1) * 5, pages.currentPage * 5)
+                .map((item) => {
+                  return (
+                    <UserTableRow
+                      key={item.id}
+                      id={item.id}
+                      username={item.username}
+                      email={item.email}
+                      date={item.registration_date}
+                      rating={item.rating}
+                      deleteFunc={handleDeleteClick}
+                    />
+                  );
+                })}
           </tbody>
         </table>
         {filteredData.length === 0 && (
           <p className="table__data-table-empty-warning">Нет данных</p>
         )}
-        <Pagination />
       </div>
+      {filteredData.length > 0 && (
+        <Pagination
+          onNextPageClick={handleNextPageClick}
+          onPrevPageClick={handlePrevPageClick}
+          disable={{
+            left: pages.currentPage === 1,
+            right: pages.currentPage === pages.allPages,
+          }}
+          pages={pages}
+        />
+      )}
     </div>
   );
 }
